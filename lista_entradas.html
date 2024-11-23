@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Entradas</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            display: none; /* Ocultar las tablas por defecto */
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .action-buttons button {
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            min-width: 150px;
+        }
+        #volver {
+            background-color: #28a745;
+            color: white;
+        }
+        #volver:hover {
+            opacity: 0.8;
+        }
+        #verVentas, #verAdeudos {
+            background-color: #007bff;
+            color: white;
+            margin-bottom: 20px;
+        }
+        #verVentas:hover, #verAdeudos:hover {
+            background-color: #0056b3;
+        }
+        .delete-btn {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .delete-btn:hover {
+            background-color: #cc0000;
+        }
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+            .container {
+                padding: 15px;
+            }
+            .action-buttons button {
+                font-size: 0.9rem;
+                min-width: 120px;
+            }
+            table th, table td {
+                padding: 8px;
+                font-size: 0.9rem;
+            }
+        }
+        @media (max-width: 480px) {
+            table th, table td {
+                padding: 5px;
+                font-size: 0.8rem;
+            }
+            .action-buttons {
+                flex-direction: column;
+            }
+            .action-buttons button {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Lista de Entradas</h1>
+
+    <div class="container">
+        <button id="verVentas" onclick="toggleVentas()">Ver Lista de Ventas</button>
+        <button id="verAdeudos" onclick="toggleAdeudos()">Ver Lista de Adeudos</button>
+
+        <h2>Ventas</h2>
+        <table id="ventasTable">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Nombre</th>
+                    <th>Teléfono</th>
+                    <th>Servicio</th>
+                    <th>Monto</th>
+                    <th>Adelanto</th>
+                </tr>
+            </thead>
+            <tbody id="ventasTableBody"></tbody>
+        </table>
+
+        <h2>Adeudos</h2>
+        <table id="adeudosTable">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Nombre</th>
+                    <th>Teléfono</th>
+                    <th>Servicio</th>
+                    <th>Monto</th>
+                    <th>Adeudo</th>
+                </tr>
+            </thead>
+            <tbody id="adeudosTableBody"></tbody>
+        </table>
+
+        <div class="action-buttons">
+            <button id="volver" onclick="irEntradas()">Volver</button>
+            <button onclick="guardarVentasPDF()">Guardar Lista de Ventas como PDF</button>
+            <button onclick="guardarAdeudosPDF()">Guardar Lista de Adeudos como PDF</button>
+        </div>
+    </div>
+
+    <script>
+        function irEntradas() {
+            window.location.href = "entradas.html"; 
+        }
+
+        function toggleVentas() {
+            const ventasTable = document.getElementById('ventasTable');
+            const verVentasButton = document.getElementById('verVentas');
+            if (ventasTable.style.display === "none" || ventasTable.style.display === "") {
+                ventasTable.style.display = "table"; 
+                verVentasButton.textContent = "Ocultar Lista de Ventas"; 
+            } else {
+                ventasTable.style.display = "none"; 
+                verVentasButton.textContent = "Ver Lista de Ventas"; 
+            }
+        }
+
+        function toggleAdeudos() {
+            const adeudosTable = document.getElementById('adeudosTable');
+            const verAdeudosButton = document.getElementById('verAdeudos');
+            if (adeudosTable.style.display === "none" || adeudosTable.style.display === "") {
+                adeudosTable.style.display = "table"; 
+                verAdeudosButton.textContent = "Ocultar Lista de Adeudos"; 
+            } else {
+                adeudosTable.style.display = "none"; 
+                verAdeudosButton.textContent = "Ver Lista de Adeudos"; 
+            }
+        }
+
+        window.onload = function() {
+            const entradas = JSON.parse(localStorage.getItem('entradas')) || [];
+
+            const ventasTableBody = document.getElementById('ventasTableBody');
+            const adeudosTableBody = document.getElementById('adeudosTableBody');
+
+            const ventas = entradas.filter(entrada => entrada.adeudo === 0);
+            const adeudos = entradas.filter(entrada => entrada.adeudo > 0);
+
+            ventas.forEach((venta, index) => {
+                const row = ventasTableBody.insertRow();
+                row.innerHTML = `
+                    <td>${venta.fecha}</td>
+                    <td>${venta.nombre}</td>
+                    <td>${venta.telefono}</td>
+                    <td>${venta.servicio}</td>
+                    <td>$${venta.monto.toFixed(2)}</td>
+                    <td>$${venta.adelanto.toFixed(2)}</td>
+                `;
+            });
+
+            adeudos.forEach((adeudo, index) => {
+                const row = adeudosTableBody.insertRow();
+                row.innerHTML = `
+                    <td>${adeudo.fecha}</td>
+                    <td>${adeudo.nombre}</td>
+                    <td>${adeudo.telefono}</td>
+                    <td>${adeudo.servicio}</td>
+                    <td>$${adeudo.monto.toFixed(2)}</td>
+                    <td>$${adeudo.adeudo.toFixed(2)}</td>
+                `;
+            });
+        };
+
+        function guardarVentasPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("Lista de Ventas", 14, 10);
+            const ventas = document.getElementById('ventasTable');
+            doc.autoTable({ html: ventas, columnStyles: { 6: { cellWidth: 'auto', halign: 'center', valign: 'middle' } } });
+            doc.save("ventas.pdf");
+        }
+
+        function guardarAdeudosPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("Lista de Adeudos", 14, 10);
+            const adeudos = document.getElementById('adeudosTable');
+            doc.autoTable({ html: adeudos, columnStyles: { 6: { cellWidth: 'auto', halign: 'center', valign: 'middle' } } });
+            doc.save("adeudos.pdf");
+        }
+    </script>
+</body>
+</html>

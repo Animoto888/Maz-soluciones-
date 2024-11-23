@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro e Inicio de Sesión</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+        h2 {
+            text-align: center;
+        }
+        label {
+            display: block;
+            margin: 5px 0;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .toggle-link {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .toggle-link a {
+            color: #007bff;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .toggle-link a:hover {
+            text-decoration: underline;
+        }
+        .main-buttons {
+            display: flex;
+            flex-direction: column;
+        }
+        .main-buttons button {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Pantalla de Registro -->
+        <div id="registerScreen">
+            <h2>Registrarse</h2>
+            <label for="registerName">Nombre:</label>
+            <input type="text" id="registerName" placeholder="Ingresa tu nombre" required>
+            
+            <label for="registerEmail">Correo Electrónico:</label>
+            <input type="email" id="registerEmail" placeholder="Ingresa tu correo" required>
+            
+            <label for="registerPassword">Contraseña:</label>
+            <input type="password" id="registerPassword" placeholder="Ingresa tu contraseña" required>
+            
+            <button onclick="registerUser()">Registrarse</button>
+            
+            <div class="toggle-link">
+                <span>¿Ya tienes cuenta? </span><a href="#" onclick="toggleToLogin()">Inicia sesión</a>
+            </div>
+        </div>
+
+        <!-- Pantalla de Inicio de Sesión -->
+        <div id="loginScreen" style="display: none;">
+            <h2>Iniciar Sesión</h2>
+            <label for="loginEmail">Correo Electrónico:</label>
+            <input type="email" id="loginEmail" placeholder="Ingresa tu correo" required>
+            
+            <label for="loginPassword">Contraseña:</label>
+            <input type="password" id="loginPassword" placeholder="Ingresa tu contraseña" required>
+            
+            <button onclick="loginUser()">Iniciar Sesión</button>
+            
+            <div class="toggle-link">
+                <span>¿No tienes cuenta? </span><a href="#" onclick="toggleToRegister()">Regístrate</a>
+            </div>
+        </div>
+
+        <!-- Pantalla Principal con los 2 botones (Salidas y Entradas) -->
+        <div id="mainScreen" style="display: none;">
+            <h2>Bienvenido, <span id="userName"></span></h2>
+            <div class="main-buttons">
+                <button onclick="redirectToSalidas()">Salidas</button>
+                <button onclick="redirectToEntradas()">Entradas</button>
+            </div>
+            <button onclick="logout()">Cerrar sesión</button>
+        </div>
+    </div>
+
+    <script>
+        // Función para alternar entre registro e inicio de sesión
+        function toggleToLogin() {
+            document.getElementById('registerScreen').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'block';
+        }
+
+        function toggleToRegister() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('registerScreen').style.display = 'block';
+        }
+
+        // Función de registro de usuario
+        function registerUser() {
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+
+            if (name && email && password) {
+                // Guardar los datos del usuario en localStorage
+                localStorage.setItem('userName', name);
+                localStorage.setItem('userEmail', email);
+                localStorage.setItem('userPassword', password);
+                
+                toggleToLogin(); // Ir a la pantalla de inicio de sesión
+            }
+        }
+
+        // Función de inicio de sesión
+        function loginUser() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            // Obtener los datos guardados del registro
+            const storedEmail = localStorage.getItem('userEmail');
+            const storedPassword = localStorage.getItem('userPassword');
+
+            if (email === storedEmail && password === storedPassword) {
+                document.getElementById('userName').textContent = localStorage.getItem('userName');
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainScreen').style.display = 'block'; // Mostrar la pantalla principal
+            } else {
+                alert("Correo o contraseña incorrectos");
+            }
+        }
+
+        // Funciones para los botones de la pantalla principal
+        function redirectToSalidas() {
+            window.location.href = "salidas.html"; // Redirige a salidas.html en la misma pestaña
+        }
+
+        function redirectToEntradas() {
+            window.location.href = "entradas.html"; // Redirige a entradas.html en la misma pestaña
+        }
+
+        // Función para cerrar sesión
+        function logout() {
+            localStorage.removeItem('userName');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('userPassword');
+            window.location.reload(); // Recargar la página para mostrar la pantalla de inicio
+        }
+
+        // Verificar si el usuario ya está logueado al cargar la página
+        window.onload = function() {
+            const userName = localStorage.getItem('userName');
+            if (userName) {
+                document.getElementById('userName').textContent = userName;
+                document.getElementById('registerScreen').style.display = 'none';
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainScreen').style.display = 'block';
+            } else {
+                document.getElementById('registerScreen').style.display = 'block';
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainScreen').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

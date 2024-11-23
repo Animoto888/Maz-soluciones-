@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Entradas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0 20px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .action-buttons button {
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            min-width: 150px;
+        }
+        #volver {
+            background-color: #28a745;
+            color: white;
+        }
+        #volver:hover {
+            opacity: 0.8;
+        }
+        #listas, #inicio {
+            background-color: #007bff;
+            color: white;
+        }
+        #listas:hover, #inicio:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Registro de Entradas</h1>
+
+    <div class="container">
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" placeholder="Nombre del cliente" required>
+
+        <label for="telefono">Teléfono:</label>
+        <input type="text" id="telefono" placeholder="Número de teléfono" required>
+
+        <label for="servicio">Servicio:</label>
+        <input type="text" id="servicio" placeholder="Servicio prestado" required>
+
+        <label for="monto">Monto Total:</label>
+        <input type="number" id="monto" placeholder="Monto total" required>
+
+        <label for="adelanto">Adelanto:</label>
+        <input type="number" id="adelanto" placeholder="Cantidad de adelanto" required>
+
+        <input type="hidden" id="fecha" value="">
+
+        <button onclick="guardarEntrada()">Añadir Entrada</button>
+
+        <div class="action-buttons">
+            <button id="listas" onclick="irListaEntradas()">Listas de Entradas</button>
+            <button id="inicio" onclick="irInicio()">Inicio</button>
+        </div>
+    </div>
+
+    <script>
+        // Función para redirigir a la página de lista de entradas
+        function irListaEntradas() {
+            window.location.href = "lista_entradas.html"; // Redirige a lista_entradas.html
+        }
+
+        // Función para redirigir a la página de inicio
+        function irInicio() {
+            window.location.href = "index.html"; // Redirige a index.html
+        }
+
+        // Función para obtener la fecha actual automáticamente
+        function obtenerFecha() {
+            const today = new Date();
+            const day = String(today.getDate()).padStart(2, '0');
+            const month = String(today.getMonth() + 1).padStart(2, '0'); // El mes es 0-indexed
+            const year = today.getFullYear();
+            return `${year}-${month}-${day}`;
+        }
+
+        // Función para guardar la entrada
+        function guardarEntrada() {
+            const fecha = obtenerFecha();
+            const nombre = document.getElementById('nombre').value;
+            const telefono = document.getElementById('telefono').value;
+            const servicio = document.getElementById('servicio').value;
+            const monto = parseFloat(document.getElementById('monto').value);
+            const adelanto = parseFloat(document.getElementById('adelanto').value);
+
+            if (!nombre || !telefono || !servicio || isNaN(monto) || isNaN(adelanto)) {
+                alert("Por favor, llena todos los campos correctamente.");
+                return;
+            }
+
+            // Crear el objeto de la entrada
+            const entrada = {
+                fecha: fecha,
+                nombre: nombre,
+                telefono: telefono,
+                servicio: servicio,
+                monto: monto,
+                adelanto: adelanto,
+                adeudo: monto - adelanto // El adeudo es la diferencia entre el monto y el adelanto
+            };
+
+            // Obtener las entradas guardadas en localStorage
+            let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
+
+            // Comprobamos las condiciones de adelanto y monto
+            if (adelanto < monto && adelanto > 0) {
+                // Si el adelanto es menor que el monto pero mayor a 0, se guarda en ambas listas
+                // Guardar en la lista de ventas (muestra el adelanto)
+                entradas.push({
+                    ...entrada,
+                    adeudo: 0, // No hay adeudo, se muestra como venta
+                    adelanto: adelanto // Muestra el adelanto
+                });
+
+                // Guardar en la lista de adeudos (muestra el adeudo)
+                entradas.push({
+                    ...entrada,
+                    adeudo: monto - adelanto, // Aquí se muestra el adeudo
+                    adelanto: 0 // No hay adelanto
+                });
+            } else if (adelanto === monto) {
+                // Si el adelanto es igual al monto, se guarda solo en ventas
+                entradas.push({
+                    ...entrada,
+                    adeudo: 0, // No hay adeudo
+                    adelanto: adelanto // Muestra el adelanto
+                });
+            } else if (adelanto === 0) {
+                // Si no hay adelanto, se guarda solo en adeudos
+                entradas.push({
+                    ...entrada,
+                    adeudo: monto, // Todo es adeudo
+                    adelanto: 0 // No hay adelanto
+                });
+            }
+
+            // Guardar las entradas actualizadas en localStorage
+            localStorage.setItem('entradas', JSON.stringify(entradas));
+
+            // Redirigir a la página de lista de entradas
+            irListaEntradas();
+        }
+
+        // Asignar la fecha automáticamente al campo oculto
+        document.getElementById('fecha').value = obtenerFecha();
+    </script>
+
+</body>
+</html>
