@@ -185,27 +185,28 @@
         function guardarVentasPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
+
     doc.text("Lista de Ventas", 14, 10);
-    
-    // Extraer las filas y columnas excepto la columna "Eliminar"
+
+    // Obtener las filas y columnas excluyendo la última columna
     const ventasTable = document.getElementById("ventasTable");
-    const data = [];
-    const headers = Array.from(ventasTable.querySelectorAll("th")).slice(0, -1); // Excluir la última columna
-    const rows = Array.from(ventasTable.querySelectorAll("tbody tr"));
+    const rows = [];
+    const headers = Array.from(ventasTable.querySelectorAll("thead th")).slice(0, -1); // Sin "Eliminar"
+    
+    // Agregar encabezados
+    rows.push(headers.map(header => header.textContent.trim()));
 
-    // Extraer encabezados
-    const headerRow = headers.map(th => th.textContent);
-    data.push(headerRow);
-
-    // Extraer datos de las filas
-    rows.forEach(row => {
-        const cells = Array.from(row.querySelectorAll("td")).slice(0, -1); // Excluir la última columna
-        data.push(cells.map(cell => cell.textContent));
+    // Agregar filas
+    const dataRows = ventasTable.querySelectorAll("tbody tr");
+    dataRows.forEach(row => {
+        const cells = Array.from(row.querySelectorAll("td")).slice(0, -1); // Sin "Eliminar"
+        rows.push(cells.map(cell => cell.textContent.trim()));
     });
 
+    // Generar tabla en PDF
     doc.autoTable({
-        head: [headerRow],
-        body: data.slice(1), // Excluir los encabezados duplicados
+        head: [rows[0]], // Primer fila como encabezado
+        body: rows.slice(1), // El resto como cuerpo
     });
 
     doc.save("ventas.pdf");
@@ -214,27 +215,28 @@
 function guardarAdeudosPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
+
     doc.text("Lista de Adeudos", 14, 10);
 
-    // Extraer las filas y columnas excepto la columna "Eliminar"
+    // Obtener las filas y columnas excluyendo la última columna
     const adeudosTable = document.getElementById("adeudosTable");
-    const data = [];
-    const headers = Array.from(adeudosTable.querySelectorAll("th")).slice(0, -1); // Excluir la última columna
-    const rows = Array.from(adeudosTable.querySelectorAll("tbody tr"));
+    const rows = [];
+    const headers = Array.from(adeudosTable.querySelectorAll("thead th")).slice(0, -1); // Sin "Eliminar"
+    
+    // Agregar encabezados
+    rows.push(headers.map(header => header.textContent.trim()));
 
-    // Extraer encabezados
-    const headerRow = headers.map(th => th.textContent);
-    data.push(headerRow);
-
-    // Extraer datos de las filas
-    rows.forEach(row => {
-        const cells = Array.from(row.querySelectorAll("td")).slice(0, -1); // Excluir la última columna
-        data.push(cells.map(cell => cell.textContent));
+    // Agregar filas
+    const dataRows = adeudosTable.querySelectorAll("tbody tr");
+    dataRows.forEach(row => {
+        const cells = Array.from(row.querySelectorAll("td")).slice(0, -1); // Sin "Eliminar"
+        rows.push(cells.map(cell => cell.textContent.trim()));
     });
 
+    // Generar tabla en PDF
     doc.autoTable({
-        head: [headerRow],
-        body: data.slice(1), // Excluir los encabezados duplicados
+        head: [rows[0]], // Primer fila como encabezado
+        body: rows.slice(1), // El resto como cuerpo
     });
 
     doc.save("adeudos.pdf");
