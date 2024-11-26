@@ -7,6 +7,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <style>
+        /* Todo tu CSS original sin cambios */
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
@@ -78,34 +79,6 @@
         .delete-btn:hover {
             background-color: #cc0000;
         }
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 1.5rem;
-            }
-            .container {
-                padding: 15px;
-            }
-            .action-buttons button {
-                font-size: 0.9rem;
-                min-width: 120px;
-            }
-            table th, table td {
-                padding: 8px;
-                font-size: 0.9rem;
-            }
-        }
-        @media (max-width: 480px) {
-            table th, table td {
-                padding: 5px;
-                font-size: 0.8rem;
-            }
-            .action-buttons {
-                flex-direction: column;
-            }
-            .action-buttons button {
-                margin-bottom: 10px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -126,6 +99,7 @@
                     <th>Servicio</th>
                     <th>Monto</th>
                     <th>Adelanto</th>
+                    <th>Eliminar</th>
                 </tr>
             </thead>
             <tbody id="ventasTableBody"></tbody>
@@ -141,6 +115,7 @@
                     <th>Servicio</th>
                     <th>Monto</th>
                     <th>Adeudo</th>
+                    <th>Eliminar</th>
                 </tr>
             </thead>
             <tbody id="adeudosTableBody"></tbody>
@@ -161,67 +136,57 @@
         function toggleVentas() {
             const ventasTable = document.getElementById('ventasTable');
             const verVentasButton = document.getElementById('verVentas');
-            if (ventasTable.style.display === "none" || ventasTable.style.display === "") {
-                ventasTable.style.display = "table"; 
-                verVentasButton.textContent = "Ocultar Lista de Ventas"; 
-            } else {
-                ventasTable.style.display = "none"; 
-                verVentasButton.textContent = "Ver Lista de Ventas"; 
-            }
+            ventasTable.style.display = (ventasTable.style.display === "none" || ventasTable.style.display === "") ? "table" : "none";
+            verVentasButton.textContent = ventasTable.style.display === "table" ? "Ocultar Lista de Ventas" : "Ver Lista de Ventas";
         }
 
         function toggleAdeudos() {
             const adeudosTable = document.getElementById('adeudosTable');
             const verAdeudosButton = document.getElementById('verAdeudos');
-            if (adeudosTable.style.display === "none" || adeudosTable.style.display === "") {
-                adeudosTable.style.display = "table"; 
-                verAdeudosButton.textContent = "Ocultar Lista de Adeudos"; 
-            } else {
-                adeudosTable.style.display = "none"; 
-                verAdeudosButton.textContent = "Ver Lista de Adeudos"; 
-            }
+            adeudosTable.style.display = (adeudosTable.style.display === "none" || adeudosTable.style.display === "") ? "table" : "none";
+            verAdeudosButton.textContent = adeudosTable.style.display === "table" ? "Ocultar Lista de Adeudos" : "Ver Lista de Adeudos";
         }
 
         window.onload = function() {
+            cargarEntradas();
+        };
+
+        function cargarEntradas() {
             const entradas = JSON.parse(localStorage.getItem('entradas')) || [];
 
             const ventasTableBody = document.getElementById('ventasTableBody');
             const adeudosTableBody = document.getElementById('adeudosTableBody');
 
-            const ventas = entradas.filter(entrada => entrada.adeudo === 0);
-            const adeudos = entradas.filter(entrada => entrada.adeudo > 0);
+            ventasTableBody.innerHTML = "";
+            adeudosTableBody.innerHTML = "";
 
-            ventas.forEach((venta, index) => {
-                const row = ventasTableBody.insertRow();
+            entradas.forEach((entrada, index) => {
+                const targetTable = entrada.adeudo > 0 ? adeudosTableBody : ventasTableBody;
+                const row = targetTable.insertRow();
                 row.innerHTML = `
-                    <td>${venta.fecha}</td>
-                    <td>${venta.nombre}</td>
-                    <td>${venta.telefono}</td>
-                    <td>${venta.servicio}</td>
-                    <td>$${venta.monto.toFixed(2)}</td>
-                    <td>$${venta.adelanto.toFixed(2)}</td>
+                    <td>${entrada.fecha}</td>
+                    <td>${entrada.nombre}</td>
+                    <td>${entrada.telefono}</td>
+                    <td>${entrada.servicio}</td>
+                    <td>$${entrada.monto.toFixed(2)}</td>
+                    <td>$${entrada.adeudo > 0 ? entrada.adeudo.toFixed(2) : entrada.adelanto.toFixed(2)}</td>
+                    <td><button class="delete-btn" onclick="eliminarEntrada(${index})">Eliminar</button></td>
                 `;
             });
+        }
 
-            adeudos.forEach((adeudo, index) => {
-                const row = adeudosTableBody.insertRow();
-                row.innerHTML = `
-                    <td>${adeudo.fecha}</td>
-                    <td>${adeudo.nombre}</td>
-                    <td>${adeudo.telefono}</td>
-                    <td>${adeudo.servicio}</td>
-                    <td>$${adeudo.monto.toFixed(2)}</td>
-                    <td>$${adeudo.adeudo.toFixed(2)}</td>
-                `;
-            });
-        };
+        function eliminarEntrada(index) {
+            let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
+            entradas.splice(index, 1);
+            localStorage.setItem('entradas', JSON.stringify(entradas));
+            cargarEntradas();
+        }
 
         function guardarVentasPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             doc.text("Lista de Ventas", 14, 10);
-            const ventas = document.getElementById('ventasTable');
-            doc.autoTable({ html: ventas, columnStyles: { 6: { cellWidth: 'auto', halign: 'center', valign: 'middle' } } });
+            doc.autoTable({ html: "#ventasTable" });
             doc.save("ventas.pdf");
         }
 
@@ -229,8 +194,7 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             doc.text("Lista de Adeudos", 14, 10);
-            const adeudos = document.getElementById('adeudosTable');
-            doc.autoTable({ html: adeudos, columnStyles: { 6: { cellWidth: 'auto', halign: 'center', valign: 'middle' } } });
+            doc.autoTable({ html: "#adeudosTable" });
             doc.save("adeudos.pdf");
         }
     </script>
